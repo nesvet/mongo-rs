@@ -1,0 +1,38 @@
+#!/bin/bash
+
+
+if [ -z "$MONGO_RS" ]; then
+    MONGO_RS="rs0";
+fi
+
+if [ ! -d "/data/db/.mongodb" ]; then
+    echo "⚙️ Running mongod setup process"
+    mongod --replSet $MONGO_RS &
+    
+    echo "⚙️ Waiting 5 sec for mongod to spin-up"
+    sleep 5
+    
+    echo "⚙️ Initiating replica set $MONGO_RS with mongosh"
+    mongosh <<SCRIPT
+rs.initiate({
+    _id: "$MONGO_RS",
+    members: [ { _id: 0, host: "127.0.0.1:27017" } ]
+});
+rs.status();
+SCRIPT
+    
+    echo "⚙️ Creating root user $MONGO_USER with mongosh"
+    mongosh <<SCRIPT
+db.getSiblingDB("${MONGO_AUTHDB:-admin}").createUser({
+    user: "${MONGO_USER:-root}",
+    pwd: "${MONGO_PASSWORD:-iddqd}",
+    roles: [ "root" ]
+});
+SCRIPT
+    
+    echo "⚙️ Shutting down mongod setup process"
+    mongod --shutdown
+fi
+
+echo "⚙️ Running mongod"
+mongod --replSet $MONGO_RS --auth --keyFile /security/keyfile --bind_ip_all
