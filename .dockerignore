@@ -1,2 +1,9 @@
-.env
-build
+.dockerignore
+Dockerfile
+
+.git
+.gitignore
+
+.DS_Store
+
+build.js

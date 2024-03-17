@@ -1,5 +1,4 @@
-ARG MONGO_VERSION=latest
-FROM mongo:${MONGO_VERSION}
+FROM mongo:latest
 
 RUN mkdir -p /security && \
     openssl rand -base64 756 > /security/keyfile && \
