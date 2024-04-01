@@ -1,0 +1,12 @@
+#!/bin/sh
+
+
+NAME="nesvet.dev/insite/mongo";
+
+docker buildx \
+    build \
+    --tag ${NAME}:latest \
+    --platform=linux/amd64,linux/arm64 \
+    --builder multi \
+    --push \
+    .
