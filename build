@@ -1,11 +1,14 @@
 #!/bin/sh
 
 
-NAME="nesvet.dev/insite/mongo";
+NAME="nesvet/mongo-rs";
 
 docker buildx \
     build \
     --tag ${NAME}:latest \
+    --tag ${NAME}:7.0.8 \
+    --tag ${NAME}:7.0 \
+    --tag ${NAME}:7 \
     --platform=linux/amd64,linux/arm64 \
     --builder multi \
     --push \

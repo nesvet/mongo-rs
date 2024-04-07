@@ -6,4 +6,6 @@ Dockerfile
 
 .DS_Store
 
-build.js
+build
+
+.other-scripts
