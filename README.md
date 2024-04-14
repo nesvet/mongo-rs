@@ -11,6 +11,8 @@ Env vars to set `default`
 * MONGO_USER `root`
 * MONGO_PASSWORD `iddqd`
 
+Connection string is about to look like `mongodb://${MONGO_USER}:${MONGO_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/?directConnection=true`
+
 ---
 
 [github.com/nesvet/mongo-rs](https://github.com/nesvet/mongo-rs)
