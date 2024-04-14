@@ -3,8 +3,7 @@
 
 NAME="nesvet/mongo-rs";
 
-docker buildx \
-    build \
+docker buildx build \
     --tag ${NAME}:latest \
     --tag ${NAME}:7.0.8 \
     --tag ${NAME}:7.0 \
