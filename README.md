@@ -1,6 +1,6 @@
 # MongoDB with replica set
 
-[Official MongoDB Image](https://hub.docker.com/_/mongo) replica set initialization on the first run (and with healthcheck)
+[Official MongoDB Image](https://hub.docker.com/_/mongo) with replica set initialization on the first run (and with healthcheck)
 
 ## Usage
 
