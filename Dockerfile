@@ -8,5 +8,7 @@ RUN mkdir -p /security && \
 HEALTHCHECK --interval=5s --timeout=5s --start-period=10s \
     CMD mongosh --eval "db.adminCommand(\"ping\");" || exit 1
 
-COPY --chmod=755 scripts/* /scripts/
-CMD /scripts/setup
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
