@@ -5,9 +5,9 @@ NAME="nesvet/mongo-rs";
 
 docker buildx build \
     --tag ${NAME}:latest \
-    --tag ${NAME}:7.0.11 \
-    --tag ${NAME}:7.0 \
-    --tag ${NAME}:7 \
+    --tag ${NAME}:8.0.4 \
+    --tag ${NAME}:8.0 \
+    --tag ${NAME}:8 \
     --platform=linux/amd64,linux/arm64 \
     --builder multi \
     --push \
