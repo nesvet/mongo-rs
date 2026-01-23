@@ -2,6 +2,18 @@
 set -e
 
 
+if [ -z "$MONGO_USER" ]; then
+    MONGO_USER="root";
+fi
+
+if [ -z "$MONGO_PASSWORD" ]; then
+    MONGO_PASSWORD="iddqd";
+fi
+
+if [ -z "$MONGO_AUTHDB" ]; then
+    MONGO_AUTHDB="admin";
+fi
+
 if [ -z "$MONGO_RS" ]; then
     MONGO_RS="rs0";
 fi
@@ -20,7 +32,7 @@ if [ ! -d "/data/db/.mongodb" ]; then
     mongosh --eval "rs.status()"
     
     echo "🛠️ 🍃 Creating root user \"$MONGO_USER\""
-    mongosh --eval "db.getSiblingDB(\"${MONGO_AUTHDB:-admin}\").createUser({ user: \"${MONGO_USER:-root}\", pwd: \"${MONGO_PASSWORD:-iddqd}\", roles: [ \"root\" ] })"
+    mongosh --eval "db.getSiblingDB(\"$MONGO_AUTHDB\").createUser({ user: \"$MONGO_USER\", pwd: \"$MONGO_PASSWORD\", roles: [ \"root\" ] })"
     
     echo "🛠️ 🍃 Shutting down MongoDB setup process"
     mongod --shutdown
@@ -35,7 +47,10 @@ until mongosh --quiet --eval "db.runCommand({ connectionStatus: 1 })" >/dev/null
 done
 
 
-FCV_CURRENT=$(mongosh -u "$MONGO_USER" -p "$MONGO_PASSWORD" --quiet --eval "db.adminCommand({ getParameter: 1, featureCompatibilityVersion: 1 }).featureCompatibilityVersion.version" | tr -d '"')
+export MONGOSH_USERNAME="$MONGO_USER"
+export MONGOSH_PASSWORD="$MONGO_PASSWORD"
+
+FCV_CURRENT=$(mongosh --quiet --eval "db.adminCommand({ getParameter: 1, featureCompatibilityVersion: 1 }).featureCompatibilityVersion.version" | tr -d '"')
 
 if [ -n "$FCV_CURRENT" ]; then
     FCV_TARGET="$(echo "$(mongosh --quiet --eval "db.version()" | tr -d '"')" | cut -d. -f1).0"
@@ -44,7 +59,7 @@ if [ -n "$FCV_CURRENT" ]; then
         echo "⚙️ 🍃 Current featureCompatibilityVersion is actual"
     else
         echo "⚙️ 🍃 Updating featureCompatibilityVersion from \"$FCV_CURRENT\" to \"$FCV_TARGET\""
-        mongosh -u "$MONGO_USER" -p "$MONGO_PASSWORD" --eval "db.adminCommand({ setFeatureCompatibilityVersion: \"$FCV_TARGET\", confirm: true })"
+        mongosh --eval "db.adminCommand({ setFeatureCompatibilityVersion: \"$FCV_TARGET\", confirm: true })"
     fi
 else
     echo "⚠️ 🍃 Unable to get featureCompatibilityVersion"
