@@ -21,7 +21,7 @@ fi
 
 if [ ! -d "/data/db/.mongodb" ]; then
     echo "🛠️ 🍃 Running MongoDB setup process"
-    mongod --replSet $MONGO_RS &
+    mongod --replSet "$MONGO_RS" &
     
     until mongosh --quiet --eval "db.runCommand({ connectionStatus: 1 })" >/dev/null 2>&1; do
         sleep 1
@@ -40,7 +40,7 @@ fi
 
 
 echo "🍃 Running MongoDB"
-mongod --replSet $MONGO_RS --auth --keyFile /security/keyfile --bind_ip_all &
+mongod --replSet "$MONGO_RS" --auth --keyFile /security/keyfile --bind_ip_all &
 
 until mongosh --quiet --eval "db.runCommand({ connectionStatus: 1 })" >/dev/null 2>&1; do
     sleep 1
@@ -49,7 +49,7 @@ done
 FCV_CURRENT=$(mongosh --quiet --eval "db.adminCommand({ getParameter: 1, featureCompatibilityVersion: 1 }).featureCompatibilityVersion.version" | tr -d '"')
 
 if [ -n "$FCV_CURRENT" ]; then
-    FCV_TARGET="$(echo "$(mongosh --quiet --eval "db.version()" | tr -d '"')" | cut -d. -f1).0"
+    FCV_TARGET="$(mongosh --quiet --eval "db.version()" | tr -d '"' | cut -d. -f1).0"
     
     if [[ "$FCV_CURRENT" == "$FCV_TARGET" ]]; then
         echo "⚙️ 🍃 Current featureCompatibilityVersion is actual"
