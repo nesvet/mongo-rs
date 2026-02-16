@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Shellcheck
+        run: shellcheck entrypoint.sh
+
+  integration:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build image
+        run: docker build -t mongo-rs:test .
+
+      - name: Start container
+        run: |
+          docker run -d --name mongo-rs-test \
+            -e MONGO_USER=root -e MONGO_PASSWORD=iddqd \
+            -v mongo-rs-test-data:/data/db \
+            mongo-rs:test
+
+      - name: Wait for healthy
+        run: |
+          for i in $(seq 1 30); do
+            status=$(docker inspect --format="{{.State.Health.Status}}" mongo-rs-test 2>/dev/null || echo "")
+            [ "$status" = "healthy" ] && break
+            sleep 2
+          done
+          [ "$status" != "healthy" ] && { echo "Container did not become healthy"; exit 1; }
+
+      - name: Run integration tests
+        run: |
+          docker exec mongo-rs-test mongosh -u root -p iddqd --authenticationDatabase admin --eval "
+            assert(rs.status().members[0].stateStr === 'PRIMARY');
+            db.getSiblingDB('test').test.insertOne({x:1});
+            assert(db.getSiblingDB('test').test.findOne().x === 1);
+            db.getSiblingDB('test').test.drop();
+            const fcv = db.adminCommand({getParameter:1,featureCompatibilityVersion:1});
+            assert(fcv.featureCompatibilityVersion && fcv.featureCompatibilityVersion.version);
+          "
+
+      - name: Cleanup
+        if: always()
+        run: docker rm -f mongo-rs-test 2>/dev/null || true
