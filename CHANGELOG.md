@@ -9,9 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.2.5] - 2026-02-17
 
+### Added
+
+- CI workflow with lint and integration tests
+- Local test script (`test.sh`)
+- README, repository metadata, and contribution templates
+- Dependabot Docker image updates
+
 ### Changed
 
 - Update MongoDB version to 8.2.5
+- Replace build script with GitHub Actions release workflow
+
+### Fixed
+
+- Relax healthcheck intervals for replica set initialization
+- Use localhost and remove redundant MONGOSH exports in `entrypoint.sh`
 
 ## [8.2.3] - 2026-01-23
 
