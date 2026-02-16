@@ -28,7 +28,7 @@ if [ ! -d "/data/db/.mongodb" ]; then
     done
     
     echo "🛠️ 🍃 Initiating replica set \"$MONGO_RS\""
-    mongosh --eval "rs.initiate({ _id: \"$MONGO_RS\", members: [ { _id: 0, host: \"127.0.0.1:27017\" } ] })"
+    mongosh --eval "rs.initiate({ _id: \"$MONGO_RS\", members: [ { _id: 0, host: \"localhost:27017\" } ] })"
     mongosh --eval "rs.status()"
     
     echo "🛠️ 🍃 Creating root user \"$MONGO_USER\""
@@ -45,10 +45,6 @@ mongod --replSet $MONGO_RS --auth --keyFile /security/keyfile --bind_ip_all &
 until mongosh --quiet --eval "db.runCommand({ connectionStatus: 1 })" >/dev/null 2>&1; do
     sleep 1
 done
-
-
-export MONGOSH_USERNAME="$MONGO_USER"
-export MONGOSH_PASSWORD="$MONGO_PASSWORD"
 
 FCV_CURRENT=$(mongosh --quiet --eval "db.adminCommand({ getParameter: 1, featureCompatibilityVersion: 1 }).featureCompatibilityVersion.version" | tr -d '"')
 
