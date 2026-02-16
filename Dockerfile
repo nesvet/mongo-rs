@@ -1,4 +1,4 @@
-FROM mongo:8.2.3
+FROM mongo:8.2.5
 
 RUN mkdir -p /security && \
     openssl rand -base64 756 > /security/keyfile && \
