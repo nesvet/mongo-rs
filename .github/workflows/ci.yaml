@@ -38,10 +38,10 @@ jobs:
         run: |
           for i in $(seq 1 30); do
             status=$(docker inspect --format="{{.State.Health.Status}}" mongo-rs-test 2>/dev/null || echo "")
-            [ "$status" = "healthy" ] && break
+            [ "$status" = "healthy" ] && break || true
             sleep 2
           done
-          [ "$status" != "healthy" ] && { echo "Container did not become healthy"; exit 1; }
+          [ "$status" != "healthy" ] && { echo "Container did not become healthy"; exit 1; } || true
 
       - name: Run integration tests
         run: |
