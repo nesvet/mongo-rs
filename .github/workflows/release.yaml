@@ -15,7 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       build_matrix: ${{ steps.matrix.outputs.build }}
-      merge_matrix: ${{ steps.matrix.outputs.merge }}
     steps:
       - uses: actions/checkout@v6
       - id: matrix
@@ -23,24 +22,16 @@ jobs:
           build_matrix=$(python3 -c "
           import json
           versions = [v.strip() for v in open('versions.txt') if v.strip()]
-          include = []
-          for v in versions:
-            for platform, slug, runner in [('linux/amd64','linux-amd64','ubuntu-latest'), ('linux/arm64','linux-arm64','ubuntu-24.04-arm')]:
-              include.append({'version':v,'platform':platform,'platform_slug':slug,'runner':runner})
-          print(json.dumps({'include':include}))
-          ")
-          merge_matrix=$(python3 -c "
-          import json
-          versions = [v.strip() for v in open('versions.txt') if v.strip()]
-          include = [{'version':v,'latest':(i==len(versions)-1)} for i,v in enumerate(versions)]
-          print(json.dumps({'include':include}))
+          include = [
+              {'version': v, 'platform': p, 'platform_slug': s, 'runner': r}
+              for v in versions
+              for p, s, r in [('linux/amd64', 'linux-amd64', 'ubuntu-latest'), ('linux/arm64', 'linux-arm64', 'ubuntu-24.04-arm')]
+          ]
+          print(json.dumps({'include': include}))
           ")
           echo "build<<BUILD_EOF" >> $GITHUB_OUTPUT
           echo "$build_matrix" >> $GITHUB_OUTPUT
           echo "BUILD_EOF" >> $GITHUB_OUTPUT
-          echo "merge<<MERGE_EOF" >> $GITHUB_OUTPUT
-          echo "$merge_matrix" >> $GITHUB_OUTPUT
-          echo "MERGE_EOF" >> $GITHUB_OUTPUT
 
   build:
     needs: prepare
@@ -50,7 +41,6 @@ jobs:
     runs-on: ${{ matrix.runner }}
     permissions:
       contents: read
-      packages: write
     steps:
       - uses: actions/checkout@v6
 
@@ -71,37 +61,38 @@ jobs:
           platforms: ${{ matrix.platform }}
           build-args: |
             MONGO_VERSION=${{ matrix.version }}
+          cache-from: type=gha,scope=mongo-rs
+          cache-to: type=gha,mode=max,scope=mongo-rs
           outputs: |
             type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true
 
       - name: Export digest
         run: |
-          mkdir -p "${{ runner.temp }}/digests"
+          mkdir -p "${{ runner.temp }}/digests/${{ matrix.version }}"
           digest="${{ steps.build.outputs.digest }}"
-          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+          touch "${{ runner.temp }}/digests/${{ matrix.version }}/${digest#sha256:}"
 
       - name: Upload digest
         uses: actions/upload-artifact@v6
         with:
           name: digests-${{ matrix.version }}-${{ matrix.platform_slug }}
-          path: ${{ runner.temp }}/digests/*
+          path: ${{ runner.temp }}/digests
           if-no-files-found: error
           retention-days: 1
 
   merge:
     needs: [ prepare, build ]
-    strategy:
-      matrix: ${{ fromJson(needs.prepare.outputs.merge_matrix) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
     steps:
+      - uses: actions/checkout@v6
+
       - name: Download digests
         uses: actions/download-artifact@v7
         with:
           path: ${{ runner.temp }}/digests
-          pattern: digests-${{ matrix.version }}-*
+          pattern: digests-*
           merge-multiple: true
 
       - name: Login to Docker Hub
@@ -113,13 +104,19 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Create manifest and push
-        working-directory: ${{ runner.temp }}/digests
+      - name: Create manifests and push
         run: |
-          v="${{ matrix.version }}"
-          mj=$(echo "$v" | cut -d. -f1,2)
-          ma=$(echo "$v" | cut -d. -f1)
-          tags="-t ${{ env.IMAGE }}:$ma -t ${{ env.IMAGE }}:$mj -t ${{ env.IMAGE }}:$v"
-          [ "${{ matrix.latest }}" = "true" ] && tags="$tags -t ${{ env.IMAGE }}:latest"
-          digest_refs=$(printf "${{ env.IMAGE }}@sha256:%s " *)
-          docker buildx imagetools create $tags $digest_refs
+          versions_file="${{ github.workspace }}/versions.txt"
+          last_version=$(grep -v '^[[:space:]]*$' "$versions_file" | tail -1 | xargs)
+          cd "${{ runner.temp }}/digests"
+          while IFS= read -r version || [ -n "$version" ]; do
+            version=$(echo "$version" | xargs)
+            [ -z "$version" ] && continue
+            [ ! -d "$version" ] && continue
+            mj=$(echo "$version" | cut -d. -f1,2)
+            ma=$(echo "$version" | cut -d. -f1)
+            tags="-t ${{ env.IMAGE }}:$ma -t ${{ env.IMAGE }}:$mj -t ${{ env.IMAGE }}:$version"
+            [ "$version" = "$last_version" ] && tags="$tags -t ${{ env.IMAGE }}:latest"
+            digest_refs=$(for f in "$version"/*; do echo -n "${{ env.IMAGE }}@sha256:$(basename "$f") "; done)
+            docker buildx imagetools create $tags $digest_refs
+          done < "$versions_file"
