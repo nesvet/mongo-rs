@@ -1,12 +1,14 @@
 #!/bin/bash
+
 set -e
 
 IMAGE="mongo-rs:test"
 CONTAINER="mongo-rs-test"
 VOLUME="mongo-rs-test-data"
 
+VERSION=$(tail -1 versions.txt)
 echo "Building image..."
-docker build -t "$IMAGE" .
+docker build --build-arg MONGO_VERSION="$VERSION" -t "$IMAGE" .
 
 echo "Starting container..."
 docker run -d --name "$CONTAINER" \

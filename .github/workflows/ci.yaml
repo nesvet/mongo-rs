@@ -16,7 +16,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Shellcheck
-        run: shellcheck entrypoint.sh
+        run: |
+          shellcheck entrypoint.sh
+          shellcheck healthcheck.sh
+          shellcheck test.sh
 
   integration:
     runs-on: ubuntu-latest
@@ -24,8 +27,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Resolve version
+        id: version
+        run: |
+          VERSION=$(tail -1 versions.txt)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Build image
-        run: docker build -t mongo-rs:test .
+        run: docker build --build-arg MONGO_VERSION=${{ steps.version.outputs.version }} -t mongo-rs:test .
 
       - name: Start container
         run: |
