@@ -7,10 +7,10 @@ RUN mkdir -p /security && \
     chmod 400 /security/keyfile && \
     chown mongodb:mongodb /security/keyfile
 
-HEALTHCHECK --interval=15s --timeout=5s --start-period=30s \
-    CMD mongosh --eval "db.adminCommand({ ping: 1 });" || exit 1
+COPY entrypoint.sh healthcheck.sh /
+RUN chmod +x /entrypoint.sh /healthcheck.sh
 
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=3 \
+	CMD /healthcheck.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
