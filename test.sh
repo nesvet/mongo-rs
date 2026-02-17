@@ -22,7 +22,7 @@ cleanup() {
 trap cleanup EXIT
 
 echo "Waiting for healthy..."
-for i in $(seq 1 30); do
+for _ in $(seq 1 30); do
 	status=$(docker inspect --format="{{.State.Health.Status}}" "$CONTAINER" 2>/dev/null || echo "")
 	[ "$status" = "healthy" ] && break
 	sleep 2
