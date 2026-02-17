@@ -116,11 +116,10 @@ jobs:
       - name: Create manifest and push
         working-directory: ${{ runner.temp }}/digests
         run: |
-          major_minor=$(echo "${{ matrix.version }}" | cut -d. -f1,2)
-          major=$(echo "${{ matrix.version }}" | cut -d. -f1)
-          tags="-t ${{ env.IMAGE }}:${{ matrix.version }} -t ${{ env.IMAGE }}:$major_minor -t ${{ env.IMAGE }}:$major"
-          if [ "${{ matrix.latest }}" = "true" ]; then
-            tags="$tags -t ${{ env.IMAGE }}:latest"
-          fi
+          v="${{ matrix.version }}"
+          mj=$(echo "$v" | cut -d. -f1,2)
+          ma=$(echo "$v" | cut -d. -f1)
+          tags="-t ${{ env.IMAGE }}:$v -t ${{ env.IMAGE }}:$mj -t ${{ env.IMAGE }}:$ma"
+          [ "${{ matrix.latest }}" = "true" ] && tags="-t ${{ env.IMAGE }}:latest $tags"
           digest_refs=$(printf "${{ env.IMAGE }}@sha256:%s " *)
           docker buildx imagetools create $tags $digest_refs
