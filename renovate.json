@@ -1,0 +1,16 @@
+{
+	"customManagers": [
+		{
+			"customType": "regex",
+			"description": "MongoDB versions",
+			"managerFilePatterns": [ "^versions\\.txt$" ],
+			"matchStrings": [
+				"^(?<currentValue>7\\.\\d+\\.\\d+)$",
+				"^(?<currentValue>8\\.\\d+\\.\\d+)$"
+			],
+			"datasourceTemplate": "docker",
+			"depNameTemplate": "library/mongo",
+			"versioningTemplate": "docker"
+		}
+	]
+}
