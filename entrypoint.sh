@@ -48,16 +48,16 @@ until mongosh --quiet --eval "db.runCommand({ connectionStatus: 1 })" >/dev/null
 	sleep 1
 done
 
-FCV_CURRENT=$(mongosh --quiet --eval "db.adminCommand({ getParameter: 1, featureCompatibilityVersion: 1 }).featureCompatibilityVersion.version" | tr -d '"')
+FCV_CURRENT=$(mongosh -u "$MONGO_USER" -p "$MONGO_PASSWORD" --authenticationDatabase "$MONGO_AUTHDB" --quiet --eval "db.adminCommand({ getParameter: 1, featureCompatibilityVersion: 1 }).featureCompatibilityVersion.version" | tr -d '"')
 
 if [ -n "$FCV_CURRENT" ]; then
-	FCV_TARGET="$(mongosh --quiet --eval "db.version()" | tr -d '"' | cut -d. -f1).0"
+	FCV_TARGET="$(mongosh -u "$MONGO_USER" -p "$MONGO_PASSWORD" --authenticationDatabase "$MONGO_AUTHDB" --quiet --eval "db.version()" | tr -d '"' | cut -d. -f1).0"
 
 	if [[ "$FCV_CURRENT" == "$FCV_TARGET" ]]; then
 		echo "⚙️ 🍃 Current featureCompatibilityVersion is actual"
 	else
 		echo "⚙️ 🍃 Updating featureCompatibilityVersion from \"$FCV_CURRENT\" to \"$FCV_TARGET\""
-		mongosh --eval "db.adminCommand({ setFeatureCompatibilityVersion: \"$FCV_TARGET\", confirm: true })"
+		mongosh -u "$MONGO_USER" -p "$MONGO_PASSWORD" --authenticationDatabase "$MONGO_AUTHDB" --eval "db.adminCommand({ setFeatureCompatibilityVersion: \"$FCV_TARGET\", confirm: true })"
 	fi
 else
 	echo "⚠️ 🍃 Unable to get featureCompatibilityVersion"
