@@ -119,7 +119,7 @@ jobs:
           v="${{ matrix.version }}"
           mj=$(echo "$v" | cut -d. -f1,2)
           ma=$(echo "$v" | cut -d. -f1)
-          tags="-t ${{ env.IMAGE }}:$v -t ${{ env.IMAGE }}:$mj -t ${{ env.IMAGE }}:$ma"
-          [ "${{ matrix.latest }}" = "true" ] && tags="-t ${{ env.IMAGE }}:latest $tags"
+          tags="-t ${{ env.IMAGE }}:$ma -t ${{ env.IMAGE }}:$mj -t ${{ env.IMAGE }}:$v"
+          [ "${{ matrix.latest }}" = "true" ] && tags="$tags -t ${{ env.IMAGE }}:latest"
           digest_refs=$(printf "${{ env.IMAGE }}@sha256:%s " *)
           docker buildx imagetools create $tags $digest_refs
