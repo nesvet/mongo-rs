@@ -1,9 +1,7 @@
-# MongoDB with replica set — Docker image
+# MongoDB with replica set
 
 [![CI](https://github.com/nesvet/mongo-rs/actions/workflows/ci.yaml/badge.svg)](https://github.com/nesvet/mongo-rs/actions/workflows/ci.yaml)
 [![Docker Image](https://img.shields.io/docker/v/nesvet/mongo-rs?logo=docker&sort=semver)](https://hub.docker.com/r/nesvet/mongo-rs)
-[![Docker Pulls](https://img.shields.io/docker/pulls/nesvet/mongo-rs?logo=docker)](https://hub.docker.com/r/nesvet/mongo-rs)
-[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 **Your app needs a replica set** — Node.js driver, Mongoose, Change Streams, transactions all require it. The [official `mongo` image](https://hub.docker.com/_/mongo) runs standalone; `mongo-rs` extends it with a replica set on first run. One container, no init scripts.
 
@@ -100,7 +98,7 @@ mongodb://root:${MONGO_PASSWORD}@mongo:27017/?directConnection=true
   volumes:
     mongo-data:
   ```
-- See [SECURITY.md](SECURITY.md) for vulnerability reporting
+- See [SECURITY.md](https://github.com/nesvet/mongo-rs/blob/main/SECURITY.md) for vulnerability reporting
 
 ## Testing
 
@@ -118,8 +116,8 @@ If it saves you time or improves your MongoDB replica set setup:
 
 ## Contributing
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md)
+[GitHub](https://github.com/nesvet/mongo-rs) • See [`CONTRIBUTING.md`](https://github.com/nesvet/mongo-rs/blob/main/CONTRIBUTING.md)
 
 ## License
 
-[MIT](LICENSE)
+[MIT](https://github.com/nesvet/mongo-rs/blob/main/LICENSE)
