@@ -1,0 +1,11 @@
+services:
+  mongo:
+    image: nesvet/mongo-rs
+    environment:
+      MONGO_PASSWORD: secret
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+
+volumes:
+  mongo-data:
