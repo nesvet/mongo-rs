@@ -73,7 +73,7 @@ jobs:
           touch "${{ runner.temp }}/digests/${{ matrix.version }}/${digest#sha256:}"
 
       - name: Upload digest
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: digests-${{ matrix.version }}-${{ matrix.platform_slug }}
           path: ${{ runner.temp }}/digests
@@ -89,7 +89,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Download digests
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           path: ${{ runner.temp }}/digests
           pattern: digests-*
